@@ -27,11 +27,12 @@ namespace xnnpack
 namespace ops
 {
 ConvolutionLayer::ConvolutionLayer()
-    : _input(nullptr), _kernel(nullptr), _bias(nullptr), _output(nullptr),
+    : _kernel_op(nullptr),
+      _input(nullptr), _kernel(nullptr), _bias(nullptr), _output(nullptr),
       _padding_type(ir::PaddingType::EXPLICIT), _padding_left(0), _padding_top(0), _padding_right(0),
       _padding_bottom(0), _stride_width(0), _stride_height(0), _dilation_width_factor(1),
       _dilation_height_factor(1), _activation(ir::Activation::NONE),
-      _prepare(false), _kerenl_op(nullptr)
+      _prepare(false)
 {
   // DO NOTHING
 }
@@ -80,8 +81,7 @@ void ConvolutionLayer::run()
   {
     enum xnn_status status = xnn_run_operator(_kernel_op, nullptr /* thread pool */);
     if (status != xnn_status_success) {
-      state.SkipWithError("failed to run FP32 Convolution operator");
-      return;
+      throw std::runtime_error{"failed to run FP32 Convolution operator"};
     }
   }
   else
@@ -95,15 +95,13 @@ void ConvolutionLayer::prepare()
   if (_prepare)
     return;
 
-  float output_activation_min = -std::numeric_limits<float>::infinity();
-  float output_activation_max = +std::numeric_limits<float>::infinity();
-  if (_activation != ir::Activation::NONE) // if not, always RELU series
-    CalculateActivationRange(_activation, &output_activation_min, &output_activation_max);
+  float output_activation_min = 0.f, output_activation_max = 0.f;
+  CalculateActivationRange<float>(_activation, &output_activation_min, &output_activation_max);
 
   // NHWC
   const auto &kernel_shape = _kernel->getShape();
-  uin32_t kernel_height = kernel_shape.dim(1);
-  uin32_t kernel_width = kernel_shape.dim(2);
+  uint32_t kernel_height = kernel_shape.dim(1);
+  uint32_t kernel_width = kernel_shape.dim(2);
   size_t batch_size = _input->getShape().dim(0);
   size_t input_height  = _input->getShape().dim(1);
   size_t input_width  = _input->getShape().dim(2);
@@ -120,8 +118,7 @@ void ConvolutionLayer::prepare()
       output_activation_min, output_activation_max,
       0 /* flags */, &_kernel_op);
   if (status != xnn_status_success) {
-    state.SkipWithError("failed to create FP32 Convolution operator");
-    return;
+    throw std::runtime_error{"failed to create FP32 Convolution operator"};
   }
   assert(_kernel_op != nullptr);
 
@@ -131,8 +128,7 @@ void ConvolutionLayer::prepare()
     reinterpret_cast<float*>(_output->buffer()),
     nullptr /* thread pool */);
   if (status != xnn_status_success) {
-    state.SkipWithError("failed to setup FP32 Convolution operator");
-    return;
+    throw std::runtime_error{"failed to create FP32 Convolution operator"};
   }
 
   _prepare = true;

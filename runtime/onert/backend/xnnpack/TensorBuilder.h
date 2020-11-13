@@ -23,8 +23,6 @@
 #include <backend/ITensorBuilder.h>
 #include <ir/OperandIndexMap.h>
 
-#include "Tensor.h"
-
 #include <unordered_map>
 
 namespace onert

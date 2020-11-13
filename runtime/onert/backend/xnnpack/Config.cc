@@ -34,8 +34,7 @@ bool Config::initialize()
 {
   xnn_status status = xnn_initialize(nullptr /* allocator */);
   if (status != xnn_status_success) {
-    state.SkipWithError("failed to initialize XNNPACK");
-    return false;
+    throw std::runtime_error{"failed to initialize XNNPACK"};
   }
   return true;
 }

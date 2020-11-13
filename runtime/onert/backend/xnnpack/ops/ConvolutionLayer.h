@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __ONERT_BACKEND_XNNPACK_OPS_CONVOLUTIONLAYER_H__
-#define __ONERT_BACKEND_XNNPACK_OPS_CONVOLUTIONLAYER_H__
+#ifndef __ONERT_BACKEND_XNNPACK_OPS_CONVOLUTION_LAYER_H__
+#define __ONERT_BACKEND_XNNPACK_OPS_CONVOLUTION_LAYER_H__
 
 #include <backend/IPortableTensor.h>
 #include "OperationUtils.h"
@@ -53,7 +53,7 @@ public:
   void prepare() override;
 
 private:
-  xnn_operator_t _kerenl_op;
+  xnn_operator_t _kernel_op;
 
   const IPortableTensor *_input;
   const IPortableTensor *_kernel;
@@ -81,4 +81,4 @@ private:
 } // namespace backend
 } // namespace onert
 
-#endif // __ONERT_BACKEND_XNNPACK_OPS_CONVOLUTIONLAYER_H__
+#endif // __ONERT_BACKEND_XNNPACK_OPS_CONVOLUTION_LAYER_H__
